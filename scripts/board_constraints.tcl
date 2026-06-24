@@ -157,12 +157,15 @@ proc generate_as02mc04_board_xdc {c} {
     puts $fh "create_clock -period $clk_period -name clk_100mhz \[get_ports clk_100mhz_p\]"
     puts $fh ""
 
-    puts $fh "## User LEDs from board interface led_7bits, GPIO_LED_1..4."
+    puts $fh "## User LEDs from board interface led_7bits."
     puts $fh "## LED_IOSTANDARD=$led_iostandard; use LED_IOSTANDARD=NONE to omit it or override with e.g. LVCMOS33."
-    emit_port_pin_constraint $fh $pins GPIO_LED_1 {led[0]} $led_iostandard
-    emit_port_pin_constraint $fh $pins GPIO_LED_2 {led[1]} $led_iostandard
-    emit_port_pin_constraint $fh $pins GPIO_LED_3 {led[2]} $led_iostandard
-    emit_port_pin_constraint $fh $pins GPIO_LED_4 {led[3]} $led_iostandard
+    emit_port_pin_constraint $fh $pins GPIO_LED_R {led[0]} $led_iostandard
+    emit_port_pin_constraint $fh $pins GPIO_LED_G {led[1]} $led_iostandard
+    emit_port_pin_constraint $fh $pins GPIO_LED_H {led[2]} $led_iostandard
+    emit_port_pin_constraint $fh $pins GPIO_LED_1 {led[3]} $led_iostandard
+    emit_port_pin_constraint $fh $pins GPIO_LED_2 {led[4]} $led_iostandard
+    emit_port_pin_constraint $fh $pins GPIO_LED_3 {led[5]} $led_iostandard
+    emit_port_pin_constraint $fh $pins GPIO_LED_4 {led[6]} $led_iostandard
     close $fh
 
     puts "Generated board constraints: $xdc"

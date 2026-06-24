@@ -1,0 +1,16 @@
+# Project configuration for this AS02MC04 design.
+#
+# This file is intentionally versioned in downstream projects. Keep project
+# identity and board choices here so template Makefile/Tcl updates merge cleanly.
+
+TOP := top
+BUILD := build/default
+
+BOARD_PART := tiferking.cn:as02mc04:part0:1.0
+PART := xcku3p-ffvb676-2-e
+
+BOARD_CONSTRAINTS := 1
+LED_IOSTANDARD := BOARD
+
+HW_FREQ := 1000000
+

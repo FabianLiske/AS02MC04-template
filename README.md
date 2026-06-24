@@ -28,6 +28,8 @@ Alle generierten Dateien landen unter `build/`. Vivado-Logs und Journals werden 
 
 ## Make-Variablen
 
+Defaults stehen im `Makefile`. Projektwerte stehen versioniert in `project.mk`; downstream Projekte sollen dort z.B. `TOP`, `PART`, `BOARD_PART` oder LED-Overrides ändern. Maschinen- oder Nutzerwerte wie ein lokaler Vivado-Pfad gehören in ein nicht versioniertes `local.mk`, das von Git ignoriert wird. Variablen auf der Kommandozeile haben weiterhin Vorrang.
+
 ```make
 VIVADO ?= vivado
 BUILD ?= build/default
@@ -38,6 +40,13 @@ PART ?= xcku3p-ffvb676-2-e
 HW_FREQ ?= 1000000
 BOARD_CONSTRAINTS ?= 1
 LED_IOSTANDARD ?= BOARD
+```
+
+Beispiel fuer `local.mk`:
+
+```make
+VIVADO := /opt/AMD/2025.2.1/Vivado/bin/vivado
+JOBS := 32
 ```
 
 Beispiele:
@@ -67,10 +76,13 @@ Aktiv verwendet werden nur Clock- und LED-Pins, die im installierten Boardfile e
 | --- | --- | --- | --- |
 | `clk_100mhz_p` | E18 | `PACKAGE_PIN`, `IOSTANDARD LVDS`, 10 ns Clock | installierter TiferKing Board-Part `part0_pins.xml`; bestätigt durch Essenceia |
 | `clk_100mhz_n` | D18 | `PACKAGE_PIN`, `IOSTANDARD LVDS` | installierter TiferKing Board-Part `part0_pins.xml`; bestätigt durch Essenceia |
-| `led[0]` | B11 | `PACKAGE_PIN`, default `IOSTANDARD LVCMOS18`, `DRIVE 8`, `SLEW SLOW` | installierter TiferKing Board-Part `part0_pins.xml`; bestätigt durch Essenceia |
-| `led[1]` | C11 | `PACKAGE_PIN`, default `IOSTANDARD LVCMOS18`, `DRIVE 8`, `SLEW SLOW` | installierter TiferKing Board-Part `part0_pins.xml`; bestätigt durch Essenceia |
-| `led[2]` | A10 | `PACKAGE_PIN`, default `IOSTANDARD LVCMOS18`, `DRIVE 8`, `SLEW SLOW` | installierter TiferKing Board-Part `part0_pins.xml`; bestätigt durch Essenceia |
-| `led[3]` | B10 | `PACKAGE_PIN`, default `IOSTANDARD LVCMOS18`, `DRIVE 8`, `SLEW SLOW` | installierter TiferKing Board-Part `part0_pins.xml`; bestätigt durch Essenceia |
+| `led[0]` / `GPIO_LED_R` | A13 | `PACKAGE_PIN`, default `IOSTANDARD LVCMOS18`, `DRIVE 8`, `SLEW SLOW` | installierter TiferKing Board-Part `part0_pins.xml` |
+| `led[1]` / `GPIO_LED_G` | A12 | `PACKAGE_PIN`, default `IOSTANDARD LVCMOS18`, `DRIVE 8`, `SLEW SLOW` | installierter TiferKing Board-Part `part0_pins.xml` |
+| `led[2]` / `GPIO_LED_H` | B9 | `PACKAGE_PIN`, default `IOSTANDARD LVCMOS18`, `DRIVE 8`, `SLEW SLOW` | installierter TiferKing Board-Part `part0_pins.xml` |
+| `led[3]` / `GPIO_LED_1` | B11 | `PACKAGE_PIN`, default `IOSTANDARD LVCMOS18`, `DRIVE 8`, `SLEW SLOW` | installierter TiferKing Board-Part `part0_pins.xml`; bestätigt durch Essenceia |
+| `led[4]` / `GPIO_LED_2` | C11 | `PACKAGE_PIN`, default `IOSTANDARD LVCMOS18`, `DRIVE 8`, `SLEW SLOW` | installierter TiferKing Board-Part `part0_pins.xml`; bestätigt durch Essenceia |
+| `led[5]` / `GPIO_LED_3` | A10 | `PACKAGE_PIN`, default `IOSTANDARD LVCMOS18`, `DRIVE 8`, `SLEW SLOW` | installierter TiferKing Board-Part `part0_pins.xml`; bestätigt durch Essenceia |
+| `led[6]` / `GPIO_LED_4` | B10 | `PACKAGE_PIN`, default `IOSTANDARD LVCMOS18`, `DRIVE 8`, `SLEW SLOW` | installierter TiferKing Board-Part `part0_pins.xml`; bestätigt durch Essenceia |
 
 Offene Unsicherheit: Essenceia und TiferKing nennen für die LEDs `LVCMOS18`; Chester Gillon dokumentiert später eine Korrektur auf `LVCMOS33` nach VCCO-Messung mit SYSMON. Der Default folgt dem installierten Boardfile (`LED_IOSTANDARD=BOARD`). Wenn deine Karte tatsächlich `LVCMOS33` für die LED-Bank braucht, baue mit `LED_IOSTANDARD=LVCMOS33` oder lege einen Override in `constraints/as02mc04.xdc` ab.
 
@@ -99,11 +111,13 @@ Dann in Vivado den passenden Run oder Checkpoint untersuchen. Relevante Aenderun
 ## Neues Projekt Aus Dem Template Starten
 
 1. Repository kopieren oder als Template verwenden.
-2. `rtl/top.sv` durch das eigene Top-Level ersetzen oder `TOP=<name>` setzen.
+2. Projektwerte in `project.mk` setzen, insbesondere `TOP`, `PART`, `BOARD_PART` und gewuenschte Constraint-Optionen.
 3. Boardfile installieren oder `BOARD_CONSTRAINTS=0` setzen und eigene Constraints pflegen.
 4. Eigene XCI-Dateien unter `ip/` ablegen.
 5. Mit `rm -rf build && make synth` prüfen.
 6. Erst nach geklärten I/O-Standards und DRC mit `make bit` bauen.
+
+Fuer template-freundliche Merges: halte projektbezogene Einstellungen in `project.mk` und lokale Pfade in `local.mk`. Aenderungen am Build-System sollten moeglichst in `Makefile` oder `scripts/` landen; diese Commits koennen dann per `cherry-pick` zurueck ins Template und von dort wieder in andere Projekte gemerged werden.
 
 ## Hardware-Zugriff
 

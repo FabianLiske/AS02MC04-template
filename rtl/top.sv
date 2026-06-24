@@ -3,7 +3,7 @@
 module top (
     input  wire        clk_100mhz_p,
     input  wire        clk_100mhz_n,
-    output wire [3:0]  led
+    output wire [6:0]  led
 );
     wire clk_ibuf;
     wire clk;
@@ -27,5 +27,5 @@ module top (
         counter <= counter + 1'b1;
     end
 
-    assign led = counter[27:24];
+    assign led = counter[27:21];
 endmodule

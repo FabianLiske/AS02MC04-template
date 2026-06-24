@@ -8,6 +8,9 @@ HW_FREQ ?= 1000000
 BOARD_CONSTRAINTS ?= 1
 LED_IOSTANDARD ?= BOARD
 
+-include project.mk
+-include local.mk
+
 REPO_ROOT := $(abspath .)
 ABS_BUILD := $(abspath $(BUILD))
 PROJECT_NAME := as02mc04_template

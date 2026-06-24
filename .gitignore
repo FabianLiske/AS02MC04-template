@@ -1,4 +1,5 @@
 /build/
+/local.mk
 /.Xil/
 *.jou
 *.log
