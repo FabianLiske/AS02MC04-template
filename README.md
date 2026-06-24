@@ -40,6 +40,8 @@ PART ?= xcku3p-ffvb676-2-e
 HW_FREQ ?= 1000000
 BOARD_CONSTRAINTS ?= 1
 LED_IOSTANDARD ?= BOARD
+BOARD_AUTO_PORTS ?= 1
+BOARD_AUTO_IOSTANDARD ?= NONE
 ```
 
 Beispiel fuer `local.mk`:
@@ -62,7 +64,21 @@ make program CONFIRM=1
 
 `JOBS` setzt in den Tcl-Skripten `general.maxThreads`. Vivado 2025.2.1 akzeptiert lokal maximal `32`; höhere Werte wie `JOBS=128` werden mit Hinweis auf `32` gedeckelt.
 
-`BOARD_CONSTRAINTS=1` erzeugt beim Projektaufbau `build/.../generated/as02mc04_board.xdc` aus dem installierten Vivado-Boardfile. `LED_IOSTANDARD=BOARD` übernimmt den Wert aus dem Boardfile, `LED_IOSTANDARD=NONE` laesst den LED-I/O-Standard weg, und ein expliziter Wert wie `LVCMOS33` überschreibt ihn für die LED-Ports.
+`BOARD_CONSTRAINTS=1` erzeugt beim Projektaufbau `build/.../generated/as02mc04_board.xdc` aus dem installierten Vivado-Boardfile. Die Projektzuordnung von Board-Pins auf RTL-Ports steht in `constraints/board_ports.tcl`; der generische Generator `scripts/board_constraints.tcl` sollte fuer normale Projekte nicht editiert werden. `LED_IOSTANDARD=BOARD` übernimmt den Wert aus dem Boardfile, `LED_IOSTANDARD=NONE` laesst den LED-I/O-Standard weg, und ein expliziter Wert wie `LVCMOS33` überschreibt ihn für die LED-Ports.
+
+`BOARD_AUTO_PORTS=1` pinnt zusätzliche Top-Level-Ports automatisch, wenn deren Name exakt einem Board-Pin aus `part0_pins.xml` entspricht, z.B. `SFP_1_MOD_DEF_0` oder `pcie_perstn_rst`. Per Default setzt `BOARD_AUTO_IOSTANDARD=NONE` für diese automatisch erkannten Ports keinen I/O-Standard, weil sich die Quellen bei einigen SFP/I2C/Reset-Signalen widersprechen. Wenn du dem installierten Boardfile bewusst folgen willst, kannst du `BOARD_AUTO_IOSTANDARD=BOARD` setzen. Die generierte XDC enthält außerdem einen kommentierten Pinout-Katalog aller Board-Pins.
+
+## Wo Projektanpassungen Hingehören
+
+- `project.mk`: versionierte Projektparameter wie `TOP`, `BUILD`, `PART`, `BOARD_PART` und Constraint-Optionen.
+- `local.mk`: nicht versionierte Maschinenwerte wie ein lokaler Vivado-Pfad oder persönliche `JOBS`.
+- `rtl/`: dein HDL.
+- `ip/`: versionierte XCI/IP-Quellen.
+- `constraints/board_ports.tcl`: Board-Pin-zu-RTL-Port-Mapping. Hier ergänzt du neue Ports, wenn deine RTL-Namen nicht exakt den Board-Pin-Namen entsprechen.
+- `constraints/as02mc04.xdc`: zusätzliche XDC-Constraints, Timing-Ausnahmen oder bewusste Overrides nach Hardwareprüfung.
+- `scripts/board_constraints.tcl`: Template-Infrastruktur. Diese Datei liest das installierte Boardfile, ruft `constraints/board_ports.tcl` auf, ergänzt optional exakte Auto-Port-Matches und schreibt den kommentierten Pinout-Katalog.
+
+Die Demo-Mappings in `constraints/board_ports.tcl` sind absichtlich optional. Wenn ein neues Projekt keine `led`-Ports oder keinen `clk_100mhz_p`-Port mehr hat, werden diese Constraints beim Generieren übersprungen; du musst sie also nicht zuerst herauswerfen.
 
 ## Speedgrade `-1-e` vs `-2-e`
 
@@ -70,7 +86,7 @@ Die Quellen sind nicht einheitlich: `TiferKing/as02mc04_hack` beschreibt im Boar
 
 ## Constraints Und Offene Pinout-Punkte
 
-Aktiv verwendet werden nur Clock- und LED-Pins, die im installierten Boardfile eindeutig belegt sind. Die konkrete XDC wird bei `make project` nach `build/.../generated/as02mc04_board.xdc` geschrieben. `constraints/as02mc04.xdc` bleibt für lokale Overrides reserviert.
+Aktiv verwendet werden standardmäßig nur Clock- und LED-Pins, die im installierten Boardfile eindeutig belegt sind und deren RTL-Ports im Design existieren. Diese Demo-Zuordnung steht in `constraints/board_ports.tcl`. Die konkrete XDC wird bei `make project` nach `build/.../generated/as02mc04_board.xdc` geschrieben. `constraints/as02mc04.xdc` bleibt für lokale Overrides reserviert.
 
 | Signal | Pin | Aktiver Constraint | Quellen |
 | --- | --- | --- | --- |
@@ -112,12 +128,15 @@ Dann in Vivado den passenden Run oder Checkpoint untersuchen. Relevante Aenderun
 
 1. Repository kopieren oder als Template verwenden.
 2. Projektwerte in `project.mk` setzen, insbesondere `TOP`, `PART`, `BOARD_PART` und gewuenschte Constraint-Optionen.
-3. Boardfile installieren oder `BOARD_CONSTRAINTS=0` setzen und eigene Constraints pflegen.
-4. Eigene XCI-Dateien unter `ip/` ablegen.
-5. Mit `rm -rf build && make synth` prüfen.
-6. Erst nach geklärten I/O-Standards und DRC mit `make bit` bauen.
+3. Eigene RTL-Dateien unter `rtl/` ablegen.
+4. Neue Board-Pin-Mappings in `constraints/board_ports.tcl` ergänzen oder Top-Level-Ports exakt wie die Board-Pins benennen und `BOARD_AUTO_PORTS=1` nutzen.
+5. Zusätzliche freie XDC-Constraints in `constraints/as02mc04.xdc` eintragen.
+6. Boardfile installieren oder `BOARD_CONSTRAINTS=0` setzen und eigene Constraints pflegen.
+7. Eigene XCI-Dateien unter `ip/` ablegen.
+8. Mit `rm -rf build && make synth` prüfen.
+9. Erst nach geklärten I/O-Standards und DRC mit `make bit` bauen.
 
-Fuer template-freundliche Merges: halte projektbezogene Einstellungen in `project.mk` und lokale Pfade in `local.mk`. Aenderungen am Build-System sollten moeglichst in `Makefile` oder `scripts/` landen; diese Commits koennen dann per `cherry-pick` zurueck ins Template und von dort wieder in andere Projekte gemerged werden.
+Fuer template-freundliche Merges: halte projektbezogene Einstellungen in `project.mk`, Board-Mappings in `constraints/board_ports.tcl` und lokale Pfade in `local.mk`. Aenderungen am Build-System sollten moeglichst in `Makefile` oder `scripts/` landen; diese Commits koennen dann per `cherry-pick` zurueck ins Template und von dort wieder in andere Projekte gemerged werden.
 
 ## Hardware-Zugriff
 

@@ -25,6 +25,8 @@ proc cfg {} {
         board_part [env_default BOARD_PART tiferking.cn:as02mc04:part0:1.0] \
         board_constraints [env_default BOARD_CONSTRAINTS 1] \
         led_iostandard [env_default LED_IOSTANDARD BOARD] \
+        board_auto_ports [env_default BOARD_AUTO_PORTS 1] \
+        board_auto_iostandard [env_default BOARD_AUTO_IOSTANDARD NONE] \
         jobs [env_default JOBS 32] \
         hw_freq [env_default HW_FREQ 1000000] \
         stage [env_default STAGE bit] \

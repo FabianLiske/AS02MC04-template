@@ -2,6 +2,8 @@
 #
 # This file is intentionally versioned in downstream projects. Keep project
 # identity and board choices here so template Makefile/Tcl updates merge cleanly.
+#
+# Board-pin-to-RTL-port mappings live in constraints/board_ports.tcl.
 
 TOP := top
 BUILD := build/default
@@ -11,6 +13,7 @@ PART := xcku3p-ffvb676-2-e
 
 BOARD_CONSTRAINTS := 1
 LED_IOSTANDARD := BOARD
+BOARD_AUTO_PORTS := 1
+BOARD_AUTO_IOSTANDARD := NONE
 
 HW_FREQ := 1000000
-

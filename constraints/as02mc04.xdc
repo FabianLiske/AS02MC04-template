@@ -4,8 +4,11 @@
 ## Vivado board files by scripts/board_constraints.tcl and written to:
 ##   build/<name>/generated/as02mc04_board.xdc
 ##
-## Keep this file for project-specific constraints that are not present in the
-## board files, or for deliberate local overrides after verifying the hardware.
+## Put board-pin-to-RTL-port mappings in constraints/board_ports.tcl.
+##
+## Keep this XDC file for project-specific constraints that are not present in
+## the board files, or for deliberate local overrides after verifying the
+## hardware.
 ##
 ## Example override if your board's LED VCCO measurement requires LVCMOS33
 ## instead of the board-file value:
