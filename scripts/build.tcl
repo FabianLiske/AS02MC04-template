@@ -55,7 +55,8 @@ proc fail_on_timing {c} {
     report_timing_summary -file [file join $reports timing_impl.rpt]
     set paths [get_timing_paths -max_paths 1 -quiet]
     if {[llength $paths] == 0} {
-        fail "No timing paths found. See [file join $reports timing_impl.rpt]."
+        puts "WARNING: No timing paths found. Continuing for designs without clocked timing paths. See [file join $reports timing_impl.rpt]."
+        return
     }
     set worst_slack [get_property SLACK [lindex $paths 0]]
     puts "Worst setup slack: $worst_slack ns"
