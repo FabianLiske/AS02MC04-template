@@ -5,12 +5,14 @@ TOP ?= top
 BOARD_PART ?= tiferking.cn:as02mc04:part0:1.0
 PART ?= xcku3p-ffvb676-2-e
 HW_FREQ ?= 1000000
+BOARD_CONSTRAINTS ?= 1
+LED_IOSTANDARD ?= BOARD
 
 REPO_ROOT := $(abspath .)
 ABS_BUILD := $(abspath $(BUILD))
 PROJECT_NAME := as02mc04_template
 PROJECT_XPR := $(ABS_BUILD)/project/$(PROJECT_NAME).xpr
-VIVADO_ENV := REPO_ROOT="$(REPO_ROOT)" BUILD="$(ABS_BUILD)" TOP="$(TOP)" PART="$(PART)" BOARD_PART="$(BOARD_PART)" JOBS="$(JOBS)" HW_FREQ="$(HW_FREQ)"
+VIVADO_ENV := REPO_ROOT="$(REPO_ROOT)" BUILD="$(ABS_BUILD)" TOP="$(TOP)" PART="$(PART)" BOARD_PART="$(BOARD_PART)" JOBS="$(JOBS)" HW_FREQ="$(HW_FREQ)" BOARD_CONSTRAINTS="$(BOARD_CONSTRAINTS)" LED_IOSTANDARD="$(LED_IOSTANDARD)"
 VIVADO_BATCH = cd "$(ABS_BUILD)" && env $(VIVADO_ENV) $(VIVADO) -mode batch
 
 .PHONY: help project gui synth impl bit reports probe program clean
@@ -35,7 +37,9 @@ help:
 	  '  TOP=$(TOP)' \
 	  '  BOARD_PART=$(BOARD_PART)' \
 	  '  PART=$(PART)' \
-	  '  HW_FREQ=$(HW_FREQ)'
+	  '  HW_FREQ=$(HW_FREQ)' \
+	  '  BOARD_CONSTRAINTS=$(BOARD_CONSTRAINTS)' \
+	  '  LED_IOSTANDARD=$(LED_IOSTANDARD)'
 
 $(ABS_BUILD):
 	mkdir -p "$(ABS_BUILD)/logs"

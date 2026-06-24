@@ -13,7 +13,6 @@ proc open_template_project {c} {
 proc report_synth {c} {
     set reports [file join [dict get $c build] reports synth]
     ensure_dir $reports
-    open_run synth_1
     report_utilization -file [file join $reports utilization_synth.rpt]
     report_timing_summary -file [file join $reports timing_synth.rpt]
     report_drc -file [file join $reports drc_synth.rpt]
@@ -23,7 +22,6 @@ proc report_synth {c} {
 proc report_impl {c} {
     set reports [file join [dict get $c build] reports impl]
     ensure_dir $reports
-    open_run impl_1
     report_timing_summary -file [file join $reports timing_impl.rpt]
     report_drc -file [file join $reports drc_impl.rpt]
     report_utilization -file [file join $reports utilization_impl.rpt]
@@ -66,58 +64,46 @@ proc fail_on_timing {c} {
     }
 }
 
-proc run_synth {c} {
-    reset_run synth_1
-    launch_runs synth_1 -jobs [dict get $c jobs]
-    wait_on_run synth_1
-    run_finished_ok synth_1
+proc synth_design_from_project {c} {
+    synth_design -top [dict get $c top] -part [dict get $c part]
     report_synth $c
 }
 
-proc run_impl {c} {
-    reset_run synth_1
-    launch_runs impl_1 -to_step route_design -jobs [dict get $c jobs]
-    wait_on_run impl_1
-    run_finished_ok synth_1
-    run_finished_ok impl_1
+proc implement_current_project {c} {
+    synth_design_from_project $c
+    opt_design
+    place_design
+    route_design
     report_impl $c
     fail_on_drc $c
     fail_on_timing $c
 }
 
-proc run_bit {c} {
-    reset_run synth_1
-    launch_runs impl_1 -to_step route_design -jobs [dict get $c jobs]
-    wait_on_run impl_1
-    run_finished_ok synth_1
-    run_finished_ok impl_1
-    open_run impl_1
-    report_impl $c
-    fail_on_drc $c
-    fail_on_timing $c
-    catch {close_design}
-
-    launch_runs impl_1 -to_step write_bitstream -jobs [dict get $c jobs]
-    wait_on_run impl_1
-    run_finished_ok impl_1
-
+proc write_template_bitstream {c} {
+    implement_current_project $c
     set output [file join [dict get $c build] output]
     ensure_dir $output
-    set produced [glob_or_empty [file join [dict get $c build] project "[dict get $c project_name].runs" impl_1 *.bit]]
-    if {[llength $produced] == 0} {
-        fail "No bitstream produced by impl_1."
-    }
     set dst [file join $output "[dict get $c top].bit"]
-    file copy -force [lindex $produced 0] $dst
+    write_bitstream -force $dst
     puts "Bitstream: $dst"
 }
 
 proc regenerate_reports {c} {
-    if {[get_property PROGRESS [get_runs synth_1]] ne "0%"} {
+    set synth_dcp [file join [dict get $c build] checkpoints "[dict get $c top]_synth.dcp"]
+    set impl_dcp [file join [dict get $c build] checkpoints "[dict get $c top]_impl.dcp"]
+
+    if {[file exists $synth_dcp]} {
+        open_checkpoint $synth_dcp
         report_synth $c
+        close_design
     }
-    if {[get_property PROGRESS [get_runs impl_1]] ne "0%"} {
+    if {[file exists $impl_dcp]} {
+        open_checkpoint $impl_dcp
         report_impl $c
+        close_design
+    }
+    if {![file exists $synth_dcp] && ![file exists $impl_dcp]} {
+        fail "No checkpoints found under [file join [dict get $c build] checkpoints]. Run make synth or make impl first."
     }
 }
 
@@ -130,9 +116,9 @@ open_template_project $c
 
 set stage [dict get $c stage]
 switch -- $stage {
-    synth { run_synth $c }
-    impl { run_impl $c }
-    bit { run_bit $c }
+    synth { synth_design_from_project $c }
+    impl { implement_current_project $c }
+    bit { write_template_bitstream $c }
     reports { regenerate_reports $c }
     default { fail "Unknown STAGE=$stage" }
 }

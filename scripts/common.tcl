@@ -23,6 +23,8 @@ proc cfg {} {
         top [env_default TOP top] \
         part [env_default PART xcku3p-ffvb676-2-e] \
         board_part [env_default BOARD_PART tiferking.cn:as02mc04:part0:1.0] \
+        board_constraints [env_default BOARD_CONSTRAINTS 1] \
+        led_iostandard [env_default LED_IOSTANDARD BOARD] \
         jobs [env_default JOBS 4] \
         hw_freq [env_default HW_FREQ 1000000] \
         stage [env_default STAGE bit] \

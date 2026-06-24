@@ -1,4 +1,5 @@
 source [file join [file dirname [info script]] common.tcl]
+source [file join [file dirname [info script]] board_constraints.tcl]
 
 set c [cfg]
 print_config $c
@@ -15,7 +16,7 @@ ensure_dir $build
 ensure_dir $proj_dir
 
 create_project -force $proj_name $proj_dir -part $part
-set_property target_language SystemVerilog [current_project]
+set_property target_language Verilog [current_project]
 set_property default_lib xil_defaultlib [current_project]
 set_property top $top [current_fileset]
 
@@ -34,6 +35,11 @@ if {[llength $rtl_files] == 0} {
     fail "No RTL files found under [file join $root rtl]"
 }
 add_files -fileset sources_1 $rtl_files
+
+if {[dict get $c board_constraints] ne "0"} {
+    set generated_xdc [generate_as02mc04_board_xdc $c]
+    add_files -fileset constrs_1 $generated_xdc
+}
 
 set xdc_files [glob_or_empty [file join $root constraints *.xdc]]
 if {[llength $xdc_files] > 0} {
