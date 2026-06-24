@@ -25,7 +25,7 @@ proc cfg {} {
         board_part [env_default BOARD_PART tiferking.cn:as02mc04:part0:1.0] \
         board_constraints [env_default BOARD_CONSTRAINTS 1] \
         led_iostandard [env_default LED_IOSTANDARD BOARD] \
-        jobs [env_default JOBS 4] \
+        jobs [env_default JOBS 32] \
         hw_freq [env_default HW_FREQ 1000000] \
         stage [env_default STAGE bit] \
         confirm [env_default CONFIRM 0]]
@@ -54,6 +54,27 @@ proc fail {message} {
     exit 1
 }
 
+proc apply_thread_settings {c} {
+    set requested [dict get $c jobs]
+    if {![string is integer -strict $requested]} {
+        fail "JOBS must be an integer, got '$requested'."
+    }
+    if {$requested < 1} {
+        fail "JOBS must be >= 1, got '$requested'."
+    }
+
+    set max_supported 32
+    set effective $requested
+    if {$effective > $max_supported} {
+        puts "WARNING: Vivado 2025.2.1 accepts general.maxThreads only up to $max_supported; using $max_supported instead of JOBS=$requested."
+        set effective $max_supported
+    }
+
+    set_param general.maxThreads $effective
+    puts "Vivado general.maxThreads: [get_param general.maxThreads]"
+    return $effective
+}
+
 proc run_finished_ok {run_name} {
     set status [get_property STATUS [get_runs $run_name]]
     puts "$run_name status: $status"
@@ -68,4 +89,5 @@ proc print_config {c} {
     puts "Top        : [dict get $c top]"
     puts "Part       : [dict get $c part]"
     puts "Board part : [dict get $c board_part]"
+    puts "Jobs       : [dict get $c jobs]"
 }

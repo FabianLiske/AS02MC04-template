@@ -1,6 +1,6 @@
 VIVADO ?= vivado
 BUILD ?= build/default
-JOBS ?= 4
+JOBS ?= 32
 TOP ?= top
 BOARD_PART ?= tiferking.cn:as02mc04:part0:1.0
 PART ?= xcku3p-ffvb676-2-e

@@ -108,6 +108,7 @@ proc regenerate_reports {c} {
 }
 
 set c [cfg]
+apply_thread_settings $c
 print_config $c
 ensure_dir [file join [dict get $c build] checkpoints]
 ensure_dir [file join [dict get $c build] reports]

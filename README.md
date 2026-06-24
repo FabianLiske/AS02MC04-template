@@ -31,7 +31,7 @@ Alle generierten Dateien landen unter `build/`. Vivado-Logs und Journals werden 
 ```make
 VIVADO ?= vivado
 BUILD ?= build/default
-JOBS ?= 4
+JOBS ?= 32
 TOP ?= top
 BOARD_PART ?= tiferking.cn:as02mc04:part0:1.0
 PART ?= xcku3p-ffvb676-2-e
@@ -50,6 +50,8 @@ make project BOARD_CONSTRAINTS=0
 make bit LED_IOSTANDARD=LVCMOS33
 make program CONFIRM=1
 ```
+
+`JOBS` setzt in den Tcl-Skripten `general.maxThreads`. Vivado 2025.2.1 akzeptiert lokal maximal `32`; höhere Werte wie `JOBS=128` werden mit Hinweis auf `32` gedeckelt.
 
 `BOARD_CONSTRAINTS=1` erzeugt beim Projektaufbau `build/.../generated/as02mc04_board.xdc` aus dem installierten Vivado-Boardfile. `LED_IOSTANDARD=BOARD` übernimmt den Wert aus dem Boardfile, `LED_IOSTANDARD=NONE` laesst den LED-I/O-Standard weg, und ein expliziter Wert wie `LVCMOS33` überschreibt ihn für die LED-Ports.
 

@@ -2,6 +2,7 @@ source [file join [file dirname [info script]] common.tcl]
 source [file join [file dirname [info script]] board_constraints.tcl]
 
 set c [cfg]
+apply_thread_settings $c
 print_config $c
 
 set root [dict get $c repo_root]
